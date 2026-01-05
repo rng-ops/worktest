@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  controller:
+    build:
+      context: ./controller
+      dockerfile: Dockerfile
+    container_name: controller
+    ports:
+      - "8000:8000"
+    environment:
+      THRESHOLD: ${THRESHOLD:-0.70}
+      EPOCH_SECONDS: ${EPOCH_SECONDS:-60}
+      MAX_BENCHMARK_AGE: ${MAX_BENCHMARK_AGE:-120}
+      LOG_LEVEL: INFO
+    volumes:
+      - ./artifacts:/artifacts
+    networks:
+      - meshnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - init
+
+  node-a:
+    build:
+      context: ./node
+      dockerfile: Dockerfile
+    container_name: node-a
+    environment:
+      NODE_ID: node-a
+      CONTROLLER_HOST: http://controller:8000
+      SCORE_MEAN: ${NODE_A_SCORE_MEAN:-0.90}
+      EMIT_INTERVAL_SEC: 10
+      POLL_INTERVAL_SEC: 10
+      PROBE_INTERVAL_SEC: 15
+      LOG_LEVEL: INFO
+    networks:
+      meshnet:
+        ipv4_address: 172.26.0.2
+    volumes:
+      - ./artifacts:/artifacts:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    depends_on:
+      - controller
+
+  node-b:
+    build:
+      context: ./node
+      dockerfile: Dockerfile
+    container_name: node-b
+    environment:
+      NODE_ID: node-b
+      CONTROLLER_HOST: http://controller:8000
+      SCORE_MEAN: ${NODE_B_SCORE_MEAN:-0.85}
+      EMIT_INTERVAL_SEC: 10
+      POLL_INTERVAL_SEC: 10
+      PROBE_INTERVAL_SEC: 15
+      LOG_LEVEL: INFO
+    networks:
+      meshnet:
+        ipv4_address: 172.26.0.3
+    volumes:
+      - ./artifacts:/artifacts:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    depends_on:
+      - controller
+
+  node-c:
+    build:
+      context: ./node
+      dockerfile: Dockerfile
+    container_name: node-c
+    environment:
+      NODE_ID: node-c
+      CONTROLLER_HOST: http://controller:8000
+      SCORE_MEAN: ${NODE_C_SCORE_MEAN:-0.40}
+      EMIT_INTERVAL_SEC: 10
+      POLL_INTERVAL_SEC: 10
+      PROBE_INTERVAL_SEC: 15
+      LOG_LEVEL: INFO
+    networks:
+      meshnet:
+        ipv4_address: 172.26.0.4
+    volumes:
+      - ./artifacts:/artifacts:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    depends_on:
+      - controller
+
+  init:
+    image: busybox
+    command: mkdir -p /artifacts && chmod 777 /artifacts
+    volumes:
+      - ./artifacts:/artifacts
+
+networks:
+  meshnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/16

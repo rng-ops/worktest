@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aligned MeshNet PoC - Demo Script</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 22px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+
+        .timer {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            border-left: 3px solid #667eea;
+        }
+
+        .code-block code {
+            display: block;
+            white-space: pre;
+            color: #d4d4d4;
+        }
+
+        .command {
+            color: #4ec9b0;
+        }
+
+        .output {
+            color: #ce9178;
+        }
+
+        .verbal {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-style: italic;
+            color: #1565c0;
+            line-height: 1.7;
+        }
+
+        .tip {
+            background: #f0f7ff;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #2e7d32;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .badge-timer {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .duration {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .section h2 {
+                font-size: 18px;
+            }
+
+            .section h3 {
+                font-size: 16px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .code-block {
+                font-size: 12px;
+                padding: 12px;
+            }
+
+            .verbal {
+                font-size: 14px;
+            }
+        }
+
+        .step-counter {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        h2 {
+            display: flex;
+            align-items: center;
+        }
+
+        .scroll-hint {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: #1976d2;
+            font-size: 14px;
+            margin-bottom: 20px;
+            border: 2px dashed #1976d2;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Aligned MeshNet PoC Demo</h1>
+            <p>5-Minute Live Demo Script • Run on Terminal, Read on Phone</p>
+        </div>
+
+        <div class="content">
+            <div class="scroll-hint">
+                💡 <strong>Pro Tip:</strong> Bookmark this page. Keep it open on your phone while running commands in terminal.
+            </div>
+
+            <!-- SETUP -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">0</span>
+                    Setup (Before Demo)
+                </h2>
+
+                <p style="margin: 15px 0;">Prepare your environment:</p>
+
+                <div class="code-block">
+                    <code><span class="command"># Clone and prepare</span>
+<span class="command">git clone https://github.com/yourusername/aligned-meshnet-poc.git</span>
+<span class="command">cd aligned-meshnet-poc</span>
+
+<span class="command"># Load environment</span>
+<span class="command">cp .env.example .env</span>
+
+<span class="command"># Verify Docker & Terraform</span>
+<span class="command">docker --version</span>
+<span class="command">terraform version</span></code>
+                </div>
+
+                <div class="tip">
+                    ✓ Make sure Docker daemon is running before continuing!
+                </div>
+            </div>
+
+            <!-- PART 1 -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">1</span>
+                    Introduction
+                    <span class="timer badge-timer">30 seconds</span>
+                </h2>
+
+                <p style="margin: 15px 0;"><strong>What to say:</strong></p>
+
+                <div class="verbal">
+                    "Today we're showing a proof-of-concept for <strong>behavioral segmentation in mesh networks</strong>.
+                    <br><br>
+                    The problem: In a multi-agent system, how do we keep bad actors out of the network without centralized control?
+                    <br><br>
+                    Our solution: <strong>Automatic membership based on behavioral benchmarks</strong>. Nodes continuously report alignment scores. If a node's score drops below threshold, it's automatically quarantined—no human intervention needed.
+                    <br><br>
+                    This demo runs everything locally in Docker. Let's see it in action."
+                </div>
+
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <em>Time remaining in demo: 4:30</em>
+                </p>
+            </div>
+
+            <!-- PART 2 -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">2</span>
+                    Starting the Demo
+                    <span class="timer badge-timer">1 minute</span>
+                </h2>
+
+                <h3>Terminal 1: Start the demo</h3>
+
+                <div class="code-block">
+                    <code><span class="command">$ make demo</span>
+<span class="output">[*] Rendering WireGuard configs via Terraform...</span>
+<span class="output">[*] Starting Docker Compose...</span>
+<span class="output">[*] Waiting for services to start...</span>
+<span class="output">[+] Demo running! Check logs with: make logs</span></code>
+                </div>
+
+                <div class="verbal">
+                    "We're starting three nodes (A, B, C) managed by a central controller. Each node periodically emits a behavioral score. Node A and B have high expected scores; Node C has a low score and will be quarantined."
+                </div>
+
+                <h3 style="margin-top: 20px;">Terminal 2: Watch logs (in new window)</h3>
+
+                <div class="code-block">
+                    <code><span class="command">$ make logs</span>
+<span class="output"># You'll see:</span>
+<span class="output">controller | [controller] Starting up...</span>
+<span class="output">controller | [controller] Epoch 1 initialized (rotates in 60s)</span>
+<span class="output">node-a | [node-a] Benchmark emitter starting (mean=0.90, ...)</span>
+<span class="output">node-b | [node-b] Benchmark emitter starting (mean=0.85, ...)</span>
+<span class="output">node-c | [node-c] Benchmark emitter starting (mean=0.40, ...)</span></code>
+                </div>
+
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <em>Time remaining in demo: 3:30</em>
+                </p>
+            </div>
+
+            <!-- PART 3 -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">3</span>
+                    First Epoch (Nodes Connecting)
+                    <span class="timer badge-timer">1 minute</span>
+                </h2>
+
+                <p style="margin: 15px 0;"><strong>Wait ~15 seconds and observe in logs:</strong></p>
+
+                <div class="code-block">
+                    <code><span class="output"># Benchmarks being submitted:</span>
+<span class="output">node-a | [node-a] SUBMITTED benchmark overall=0.91</span>
+<span class="output">node-b | [node-b] SUBMITTED benchmark overall=0.84</span>
+<span class="output">node-c | [node-c] SUBMITTED benchmark overall=0.42</span>
+
+<span class="output"># All nodes can ping each other:</span>
+<span class="output">node-a | [node-a] PING node-b OK (10.10.0.3)</span>
+<span class="output">node-a | [node-a] PING node-c OK (10.10.0.4)</span>
+<span class="output">node-b | [node-b] PING node-a OK (10.10.0.2)</span>
+<span class="output">node-c | [node-c] PING node-a OK (10.10.0.2)</span></code>
+                </div>
+
+                <div class="verbal">
+                    "Each node is submitting its behavioral score every 10 seconds. We can see:
+                    <br><br>
+                    • Node A: 0.91 (good alignment)
+                    <br>
+                    • Node B: 0.84 (good alignment)
+                    <br>
+                    • Node C: 0.42 (poor alignment)
+                    <br><br>
+                    Right now, all three nodes can reach each other because we're in the first epoch. The membership decision hasn't been made yet."
+                </div>
+
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <em>Time remaining in demo: 2:30</em>
+                </p>
+            </div>
+
+            <!-- PART 4 -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">4</span>
+                    Epoch Rotation & Quarantine 🔑
+                    <span class="timer badge-timer">2 minutes</span>
+                </h2>
+
+                <p style="margin: 15px 0;"><strong>⏱️ Wait for epoch rotation (60 seconds from start):</strong></p>
+
+                <div class="code-block">
+                    <code><span class="output"># At ~t=60s, controller evaluates membership:</span>
+<span class="output">controller | [controller] Epoch rotation: id=2 expiry=...</span>
+<span class="output">controller | [controller] Node-A: membership=ALLOWED ✓</span>
+<span class="output">controller | [controller] Node-B: membership=ALLOWED ✓</span>
+<span class="output">controller | [controller] Node-C: membership=DENIED ✗</span>
+<span class="output">controller | [controller] Status written to /artifacts/status.json</span></code>
+                </div>
+
+                <p style="margin-top: 15px;"><strong>Then nodes get updated membership:</strong></p>
+
+                <div class="code-block">
+                    <code><span class="output">node-a | [node-a] MEMBERSHIP=ALLOWED epoch=2</span>
+<span class="output">node-a | [node-a] APPLIED epoch psk ****</span>
+<span class="output">node-b | [node-b] MEMBERSHIP=ALLOWED epoch=2</span>
+<span class="output">node-b | [node-b] APPLIED epoch psk ****</span>
+<span class="output">node-c | [node-c] MEMBERSHIP=DENIED epoch=2</span>
+<span class="output">node-c | [node-c] PSK invalid - cannot communicate</span></code>
+                </div>
+
+                <p style="margin-top: 15px;"><strong>Watch network failures (next 20 seconds):</strong></p>
+
+                <div class="code-block">
+                    <code><span class="output"># A and B continue pinging each other (OK):</span>
+<span class="output">node-a | [node-a] PING node-b OK (10.10.0.3)</span>
+<span class="output">node-b | [node-b] PING node-a OK (10.10.0.2)</span>
+
+<span class="output"># C's pings now FAIL:</span>
+<span class="output">node-c | [node-c] PING node-a FAIL (no route)</span>
+<span class="output">node-c | [node-c] PING node-b FAIL (no route)</span>
+
+<span class="output"># A and B don't see C:</span>
+<span class="output">node-a | [node-a] PING node-c FAIL (no route)</span>
+<span class="output">node-b | [node-b] PING node-c FAIL (no route)</span></code>
+                </div>
+
+                <div class="verbal">
+                    "🎯 <strong>This is the magic moment!</strong>
+                    <br><br>
+                    At 60 seconds, the controller rotates the epoch—it generates a new shared secret and re-evaluates membership:
+                    <br><br>
+                    • Node A &amp; B have scores above 0.70 → <strong>ALLOWED</strong> → receive valid PSK
+                    <br>
+                    • Node C has score 0.42 &lt; 0.70 → <strong>DENIED</strong> → receives invalid PSK
+                    <br><br>
+                    <strong>Result:</strong> Node C is quarantined. Its packets are encrypted with the wrong PSK, so A and B drop them. This happens automatically—no firewall rules, no manual intervention. Just cryptographic enforcement.
+                    <br><br>
+                    <strong>The key insight:</strong> behavior → segmentation. The network topology adapts based on alignment scores."
+                </div>
+
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <em>Time remaining in demo: 30 seconds</em>
+                </p>
+            </div>
+
+            <!-- PART 5 -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">5</span>
+                    Check Status
+                    <span class="timer badge-timer">30 seconds</span>
+                </h2>
+
+                <h3>Check status.json (Terminal 1 or new terminal):</h3>
+
+                <div class="code-block">
+                    <code><span class="command">$ cat artifacts/status.json | jq .</span>
+<span class="output">{</span>
+<span class="output">  "epoch": {</span>
+<span class="output">    "id": 2,</span>
+<span class="output">    "expiry_utc": "2026-01-05T12:35:00Z",</span>
+<span class="output">    "secret_hash": "sha256:a1b2c3d4..."</span>
+<span class="output">  },</span>
+<span class="output">  "nodes": {</span>
+<span class="output">    "node-a": {"membership": "ALLOWED", ...},</span>
+<span class="output">    "node-b": {"membership": "ALLOWED", ...},</span>
+<span class="output">    "node-c": {"membership": "DENIED", ...}</span>
+<span class="output">  }</span>
+<span class="output">}</span></code>
+                </div>
+
+                <h3 style="margin-top: 20px;">Query controller API:</h3>
+
+                <div class="code-block">
+                    <code><span class="command"># Check who's allowed</span>
+<span class="command">$ curl http://localhost:8000/v1/epoch | jq .</span>
+
+<span class="command"># Get Node-A's PSK (should have one)</span>
+<span class="command">$ curl http://localhost:8000/v1/config/node-a | jq .</span>
+<span class="output">{</span>
+<span class="output">  "allowed": true,</span>
+<span class="output">  "psk_base64": "..."</span>
+<span class="output">}</span>
+
+<span class="command"># Get Node-C's status (no PSK)</span>
+<span class="command">$ curl http://localhost:8000/v1/config/node-c | jq .</span>
+<span class="output">{</span>
+<span class="output">  "allowed": false,</span>
+<span class="output">  "reason": "score 0.42 < threshold 0.70"</span>
+<span class="output">}</span></code>
+                </div>
+
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <em>🎉 Demo complete! Time: 5:00</em>
+                </p>
+            </div>
+
+            <!-- CLEANUP -->
+            <div class="section">
+                <h2>
+                    <span class="step-counter">6</span>
+                    Cleanup (Optional)
+                </h2>
+
+                <div class="code-block">
+                    <code><span class="command">$ make down</span>
+<span class="output">[*] Stopping containers...</span>
+<span class="output">[+] Stopped.</span></code>
+                </div>
+            </div>
+
+            <!-- TALKING POINTS -->
+            <div class="section">
+                <h2>💬 Key Talking Points</h2>
+
+                <h3>Why This Matters</h3>
+                <div class="verbal">
+                    "In AI safety, we care about <strong>behavioral accountability</strong>. If an agent starts drifting from aligned behavior, we need a way to exclude it from critical infrastructure—without human approval delays.
+                    <br><br>
+                    This PoC shows that mesh networks can enforce segmentation automatically based on continuous behavioral signals. The epoch-based rotation ensures no node can 'game' the system by submitting one good score and then degrading."
+                </div>
+
+                <h3>Technical Details</h3>
+                <div class="verbal">
+                    "Three things make this work:
+                    <br><br>
+                    <strong>1. Epoch-based rotation</strong> – Every 60 seconds, the secret changes. If you're not re-evaluated and approved, you're out.
+                    <br><br>
+                    <strong>2. Per-node PSK derivation</strong> – Each node gets a unique PSK based on the shared secret. Even if one node is compromised, others are unaffected.
+                    <br><br>
+                    <strong>3. Behavioral scoring</strong> – Real benchmarks (not ping/pong) determine fitness. The threshold is tunable per deployment."
+                </div>
+
+                <h3>Future Hardening</h3>
+                <div class="verbal">
+                    "This is a PoC, so we've kept things simple:
+                    <ul style="margin: 10px 0 10px 20px;">
+                        <li>Single controller (PoC only; production uses Raft)</li>
+                        <li>Optional signatures (PoC; production requires ECDSA/Ed25519)</li>
+                        <li>Mocked benchmarks (PoC; production integrates InfraSim, HackAssist)</li>
+                        <li>No audit log (PoC; production has sealed log)</li>
+                    </ul>
+                    The architecture scales to large deployments and can integrate with real infrastructure like Kubernetes and cloud platforms."
+                </div>
+            </div>
+
+            <!-- Q&A -->
+            <div class="section">
+                <h2>❓ Expected Q&A</h2>
+
+                <h3>Q: Can a node game the system by submitting fake scores?</h3>
+                <div class="tip">
+                    <strong>A:</strong> In the PoC, signatures are optional. In production, we implement ECDSA/Ed25519 signatures over the benchmark. The controller verifies against the node's public key. A node can't forge scores from another node.
+                </div>
+
+                <h3>Q: What if the controller is compromised?</h3>
+                <div class="tip">
+                    <strong>A:</strong> Good question. The PoC has a single controller. Production hardens this by:
+                    <ul style="margin: 10px 0 10px 20px;">
+                        <li>Replicating the controller (3–5 nodes with Raft consensus)</li>
+                        <li>Requiring 2-of-3 quorum for critical decisions</li>
+                        <li>Sealing the audit log with timestamps + signatures</li>
+                    </ul>
+                </div>
+
+                <h3>Q: Why WireGuard? Why not just firewall rules?</h3>
+                <div class="tip">
+                    <strong>A:</strong> Firewalls are coarse-grained (all-or-nothing per IP). WireGuard PSKs are fine-grained and can rotate per-epoch. It's also more portable—works across cloud providers, on-prem, and hybrid setups.
+                </div>
+
+                <h3>Q: What about latency? 60-second epochs seem slow.</h3>
+                <div class="tip">
+                    <strong>A:</strong> 60s is configurable. You can rotate every 10s if you want tighter control. Trade-off: more rotations = more computation + more disruption to long-lived flows.
+                </div>
+            </div>
+
+            <!-- TROUBLESHOOTING -->
+            <div class="section">
+                <h2>🔧 Troubleshooting</h2>
+
+                <h3>Containers won't start</h3>
+                <div class="code-block">
+                    <code><span class="command">docker ps -a</span>
+<span class="command">docker logs controller</span></code>
+                </div>
+
+                <h3>Nodes can't ping each other</h3>
+                <div class="code-block">
+                    <code><span class="command">docker exec node-a ip addr show wg0</span>
+<span class="command">docker exec node-a wg show wg0</span>
+<span class="command">make logs</span></code>
+                </div>
+
+                <h3>Epoch not rotating at 60s</h3>
+                <div class="code-block">
+                    <code><span class="command"># Check for rotation message in logs</span>
+<span class="command">grep "Epoch rotation" docker logs</span>
+
+<span class="command"># Force rotation (testing only)</span>
+<span class="command">make rotate-now</span></code>
+                </div>
+
+                <h3>status.json not updated</h3>
+                <div class="code-block">
+                    <code><span class="command">ls -la artifacts/status.json</span>
+<span class="command"># Check permissions: should be readable</span></code>
+                </div>
+            </div>
+
+            <!-- REFERENCES -->
+            <div class="section">
+                <h2>📚 References</h2>
+
+                <table>
+                    <tr>
+                        <th>Document</th>
+                        <th>Purpose</th>
+                    </tr>
+                    <tr>
+                        <td><strong>README.md</strong></td>
+                        <td>Overview, quickstart, troubleshooting</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ARCHITECTURE.md</strong></td>
+                        <td>System design, components, data flows</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PROTOCOL.md</strong></td>
+                        <td>Message formats, epoch lifecycle, membership rules</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SECURITY.md</strong></td>
+                        <td>Threat model, hardening roadmap</td>
+                    </tr>
+                    <tr>
+                        <td><strong>INTEGRATION.md</strong></td>
+                        <td>Real benchmarks (InfraSim, HackAssist), Kubernetes</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- TIPS FOR VIDEO RECORDING -->
+            <div class="section">
+                <h2>🎥 Recording Tips</h2>
+
+                <div class="checklist">
+                    <li><strong>Terminal Multiplexer:</strong> Use tmux/screen to show logs + commands side-by-side</li>
+                    <li><strong>Speed Up Wait Times:</strong> Fast-forward the 60-second epoch wait (use 2x speed)</li>
+                    <li><strong>Highlight the Quarantine Moment:</strong> This is the payoff (t=60s)</li>
+                    <li><strong>Show status.json Change:</strong> Demonstrate data changes at epoch boundary</li>
+                    <li><strong>End with Impact:</strong> "This PoC is 500 lines of code. Production requires signatures, audit logs, and distributed consensus. But the core idea—behavioral segmentation—is proven."</li>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p>Aligned MeshNet PoC Demo Script • HTML version for mobile viewing</p>
+            <p style="margin-top: 10px; font-size: 11px;">
+                Total demo time: <strong>5 minutes</strong> • Generated: January 5, 2026
+            </p>
+        </div>
+    </div>
+</body>
+</html>
